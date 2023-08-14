@@ -18,7 +18,6 @@
 package io.realm;
 
 import android.content.Context;
-import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,6 +30,7 @@ import com.tonicartos.superslim.LinearSLM;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.recyclerview.widget.RecyclerView;
 import co.moonmonkeylabs.realmrecyclerview.LoadMoreListItemView;
 import co.moonmonkeylabs.realmrecyclerview.R;
 import co.moonmonkeylabs.realmrecyclerview.RealmRecyclerView;
@@ -40,7 +40,6 @@ import difflib.DiffUtils;
 import difflib.Patch;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
-import io.realm.internal.TableOrView;
 
 /**
  * The base {@link RecyclerView.Adapter} that includes custom functionality to be used with the
@@ -163,42 +162,45 @@ public abstract class RealmBasedRecyclerViewAdapter
 
         // If automatic updates aren't enabled, then animateResults should be false as well.
         this.animateResults = (automaticUpdate && animateResults);
-        if (animateResults) {
-            animatePrimaryColumnIndex = realmResults.getTableOrView().getTable().getPrimaryKey();
-            if (animatePrimaryColumnIndex == TableOrView.NO_MATCH) {
-                throw new IllegalStateException(
-                        "Animating the results requires a primaryKey.");
-            }
-            animatePrimaryIdType = realmResults.getTableOrView().getColumnType(animatePrimaryColumnIndex);
-            if (animatePrimaryIdType != RealmFieldType.INTEGER &&
-                    animatePrimaryIdType != RealmFieldType.STRING) {
-                throw new IllegalStateException(
-                        "Animating requires a primary key of type Integer/Long or String");
-            }
-
-            if (animateExtraColumnName != null) {
-                animateExtraColumnIndex = realmResults.getTableOrView().getTable()
-                        .getColumnIndex(animateExtraColumnName);
-                if (animateExtraColumnIndex == TableOrView.NO_MATCH) {
-                    throw new IllegalStateException(
-                            "Animating the results requires a valid animateColumnName.");
-                }
-                animateExtraIdType = realmResults.getTableOrView().getColumnType(animateExtraColumnIndex);
-                if (animateExtraIdType != RealmFieldType.INTEGER &&
-                        animateExtraIdType != RealmFieldType.STRING &&
-                        animateExtraIdType != RealmFieldType.DATE) {
-                    throw new IllegalStateException(
-                            "Animating requires a animateColumnName of type Int/Long or String");
-                }
-            } else {
-                animateExtraColumnIndex = -1;
-            }
-        }
-
-        if (addSectionHeaders && headerColumnName == null) {
-            throw new IllegalStateException(
-                    "A headerColumnName is required for section headers");
-        }
+        /***
+         * the following lines of  code where commendte by Ahmed Eldakhakhny shall assume no animation
+         */
+//        if (animateResults) {
+//            animatePrimaryColumnIndex = realmResults.getTableOrView().getTable().getPrimaryKey();
+//            if (animatePrimaryColumnIndex == TableOrView.NO_MATCH) {
+//                throw new IllegalStateException(
+//                        "Animating the results requires a primaryKey.");
+//            }
+//            animatePrimaryIdType = realmResults.getTableOrView().getColumnType(animatePrimaryColumnIndex);
+//            if (animatePrimaryIdType != RealmFieldType.INTEGER &&
+//                    animatePrimaryIdType != RealmFieldType.STRING) {
+//                throw new IllegalStateException(
+//                        "Animating requires a primary key of type Integer/Long or String");
+//            }
+//
+//            if (animateExtraColumnName != null) {
+//                animateExtraColumnIndex = realmResults.getTableOrView().getTable()
+//                        .getColumnIndex(animateExtraColumnName);
+//                if (animateExtraColumnIndex == TableOrView.NO_MATCH) {
+//                    throw new IllegalStateException(
+//                            "Animating the results requires a valid animateColumnName.");
+//                }
+//                animateExtraIdType = realmResults.getTableOrView().getColumnType(animateExtraColumnIndex);
+//                if (animateExtraIdType != RealmFieldType.INTEGER &&
+//                        animateExtraIdType != RealmFieldType.STRING &&
+//                        animateExtraIdType != RealmFieldType.DATE) {
+//                    throw new IllegalStateException(
+//                            "Animating requires a animateColumnName of type Int/Long or String");
+//                }
+//            } else {
+//                animateExtraColumnIndex = -1;
+//            }
+//        }
+//
+//        if (addSectionHeaders && headerColumnName == null) {
+//            throw new IllegalStateException(
+//                    "A headerColumnName is required for section headers");
+//        }
 
         updateRealmResults(realmResults);
     }
@@ -453,8 +455,7 @@ public abstract class RealmBasedRecyclerViewAdapter
             int headerCount = 0;
             int sectionFirstPosition = 0;
             rowWrappers.clear();
-
-            final long headerIndex = realmResults.getTableOrView().getTable().getColumnIndex(headerColumnName);
+            final long headerIndex = realmResults.getTable().getColumnKey(headerColumnName);
             int i = 0;
             for (RealmModel result : realmResults) {
                 Object rawHeader;
@@ -628,7 +629,7 @@ public abstract class RealmBasedRecyclerViewAdapter
      * If it is extended to LinearLayoutWithHeaders, rowWrappers will have to be used.
      */
     public void onItemSwipedDismiss(int position) {
-        final BaseRealm realm = realmResults.realm;
+        final BaseRealm realm = realmResults.getRealm();
         realm.beginTransaction();
         realmResults.deleteFromRealm(position);
         realm.commitTransaction();
