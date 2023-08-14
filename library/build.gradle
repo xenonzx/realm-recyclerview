@@ -9,8 +9,9 @@ android {
     compileSdk 33
 
     defaultConfig {
-        minSdk 24
+        minSdk 16
         targetSdk 33
+        multiDexEnabled true
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
